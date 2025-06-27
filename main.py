@@ -18,6 +18,8 @@ import uuid
 import random
 import string
 import hashlib
+from flask import Flask
+import threading
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
@@ -37,6 +39,26 @@ THREADPOOL = ThreadPoolExecutor(max_workers=1000)
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
+# Bot credentials from environment variables (Render compatible)
+API_ID = int(os.environ.get("API_ID", 25933223))
+API_HASH = os.environ.get("API_HASH", "6ef5a426d85b7f01562a41e6416791d3")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8087125389:AAFQm9W73dxk2H0rzZe87CSMQRijGbPfmU8")
+
+# Initialize Bot Globally (IMPORTANT FIX)
+bot = Client("bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# Flask app for Render
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    app.run(host="0.0.0.0", port=1000) #Use 8080 Port here, if you're deploying it on koyeb
+
+
 image_list = [
 "https://graph.org/file/8b1f4146a8d6b43e5b2bc-be490579da043504d5.jpg",
 "https://graph.org/file/b75dab2b3f7eaff612391-282aa53538fd3198d4.jpg",
@@ -45,11 +67,7 @@ image_list = [
 "https://graph.org/file/8b7e3d10e362a2850ba0a-f7c7c46e9f4f50b10b.jpg",
 ]
 print(4321)
-bot = Client(
-    "bot",
-    api_id=api_id,
-    api_hash=api_hash,
-    bot_token=bot_token)
+   
 
 @bot.on_message(filters.command(["start"]))
 async def start(bot, message):
@@ -1647,5 +1665,8 @@ async def process_appxwp(bot: Client, m: Message, user_id: int):
             await CONNECTOR.close()
 
 
-                                        
-bot.run()
+# Start Flask + Bot
+if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
+    bot.run()                                        
+
